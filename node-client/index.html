@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Practice - Client Site</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container mt-5">
+      <div class="row">
+          <div class="col-md-8">
+            <table class="table table-dark text-center table-bordered" >
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+               <tbody id="table">
+               </tbody>
+            </table>
+          </div>
+          <div class="col-md-4 bg-dark p-2 text-center">
+                <form>
+                    <input type="text" class="form-control" placeholder="Enter your name" id="userName"/>
+                    <input type="email" class="form-control mb-1" placeholder="Enter email address" id="userEmail"/>
+                    <h5 class="text-danger mt-2" id="error"></h5>
+                    <h5 class="text-success mt-2" id="success" style="display:none">User Added Successfully</h5>
+                    <button type="submit" class="btn btn-success mt-3" id="addUser">Add User</button>
+                </form>
+          </div>
+      </div>
+    </div>
+
+    <script>
+        fetch('http://localhost:4000/users')
+        .then(res => res.json())
+        .then(data => displayUser(data))
+        const displayUser = data =>{
+            for (let i = 0; i < data.length; i++) {
+                const user = data[i];
+                appendUser(user)
+            }
+        }
+        const appendUser = user => {
+            document.getElementById('table').innerHTML += "<tr style='cursor:not-allowed'>"+"<td>"+user.name+"</td>"+"<td class='email'>"+user.email+"</td>"+"</tr>"
+        }
+        document.getElementById('addUser').addEventListener('click',(e)=>{
+            e.preventDefault()
+            const name = document.getElementById('userName').value
+            const email = document.getElementById('userEmail').value
+            const emailArray = [];
+            const allEmail = document.getElementsByClassName('email');
+            for(i=0;i<allEmail.length;i++){
+                if(emailArray.indexOf(allEmail[i].innerText)<0){
+                    emailArray.push(allEmail[i].innerText);
+                }
+            }
+            
+            if(emailArray.indexOf(email)<0 && name && email){
+            const user = {name,email}
+            fetch('http://localhost:4000/addUser', {
+                method: 'POST',
+                body: JSON.stringify(user),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                appendUser(user)
+                //clean
+                document.getElementById('userName').value=""
+                document.getElementById('userEmail').value=""
+                //success message
+                document.getElementById('success').style.display = "block"
+                setTimeout(()=>{
+                document.getElementById('success').style.display = "none"
+                },2000)
+
+            })
+           }
+           else if(!(name && email)){
+            document.getElementById('error').innerText = "All fields required"
+            setTimeout(()=>{
+                document.getElementById('error').innerText = ""
+                },2000);
+           }
+           else if(!(emailArray.indexOf(email)<0)){
+            document.getElementById('error').innerText = "Email Already Added"
+            
+                setTimeout(()=>{
+                    document.getElementById('error').innerText = ""
+                },2000);
+           }
+        })
+        
+        document.getElementById("table").addEventListener('click',(e)=>{
+            e.target.parentNode.parentNode.removeChild(e.target.parentNode) 
+        })
+        
+
+    </script>
+
+</body>
+</html>
